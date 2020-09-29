@@ -28,16 +28,19 @@ This repo contains an exercise intended for Back-End Engineers.
 
 ```
 pipenv install; # INSTALL DEPENDENCIES
+pipenv run python main.py -h; # Display runtime parameters
 pipenv run python main.py; # EXECUTE PROGRAM WITH DEFAULT PARAMS
 ```
 
 - [ ] TODO: create gif of execution
-- [ ] TODO: document run command
 
 ## Assumptions
 
 1. Data was generated via [mockaroo](https://www.mockaroo.com/a701ae50)
 1. The program is intended to be used via Command Line Interface(CLI)
-1. The program has been testing on MacOS and Linux(Ubuntu)
-1. The program should run until the user exits the program
+1. The program has been tested on MacOS and Linux(Ubuntu)
+1. The program should run until the user exits the program(Control + C)
+1. The program should not store processed files between runs
+1. The program should create folders if they do do not exist
+1. The program should not delete the output directories after a run
 1. TODO: All the assumptions
