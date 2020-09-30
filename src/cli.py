@@ -8,7 +8,7 @@ from watchdog.events import PatternMatchingEventHandler
 from watchdog.observers import Observer
 
 from src.models import Person, Error
-from src.utils import write_json, delete_file, create_directory_if_not_exists
+from src.utils import write_json, delete_file, create_directory_if_not_exists, write_csv
 
 
 class CLI:
@@ -16,6 +16,7 @@ class CLI:
     CLI represents a Command Line Interface object. CLI is responsible for
     creating directories, tracking processed files, and handling on_create events.
     """
+
     def __init__(self, input_directory="input_directory", output_directory="output_directory",
                  error_directory="error_directory"):
         self.input_directory = input_directory
@@ -80,12 +81,17 @@ class CLI:
         _, file_name = os.path.split(src_path)
         target_path = file_name.replace(".csv", ".json")
         people_file = f"{self.output_directory}/{target_path}"
-        errors_file = f"{self.error_directory}/{target_path}"
+        errors_file = f"{self.error_directory}/{file_name}"
 
         self._write_json_to_file(data=people, output_file=people_file)
-        self._write_json_to_file(data=errors, output_file=errors_file)
+        self._write_csv_to_file(data=errors, output_file=errors_file)
 
         logging.info(f"Successfully parsed out {src_path}!: {event}")
+
+    @staticmethod
+    def _write_csv_to_file(data, output_file):
+        logging.info(f"Writing out to : {output_file}")
+        write_csv(data=data, field_names=['LINE_NUM', 'ERROR_MSG'], output_file=output_file)
 
     @staticmethod
     def _write_json_to_file(data, output_file):
@@ -121,7 +127,8 @@ class CLI:
             reader = csv.DictReader(csv_file)
             for row_number, row in enumerate(reader):
                 try:
-                    person = Person(internal_id=row['INTERNAL_ID'], first_name=row['FIRST_NAME'], last_name=row['LAST_NAME'],
+                    person = Person(internal_id=row['INTERNAL_ID'], first_name=row['FIRST_NAME'],
+                                    last_name=row['LAST_NAME'],
                                     middle_name=row['MIDDLE_NAME'], phone_number=row['PHONE_NUM'])
                     people.append(person)
                 except ValueError as e:
@@ -137,8 +144,6 @@ def parse_args() -> {}:
     Scaffold the CLI tool and parse_args defaults.
     :return: Object with configuration values
     """
-    # TODO: Add arguments for input, output and error directories
-
     parser = argparse.ArgumentParser(description=DEFAULTS['DESCRIPTION'])
     parser.add_argument('-i', '--input-directory', help="Input Directory to watch", default=DEFAULTS['INPUT_DIRECTORY'])
     parser.add_argument('-o', '--output-directory', help="Directory to write our results",
