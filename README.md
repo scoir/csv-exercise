@@ -34,6 +34,20 @@ pipenv run python main.py; # EXECUTE PROGRAM WITH DEFAULT PARAMS
 
 - [ ] TODO: create gif of execution
 
+### Testing
+
+Tests are written with the built in [unittest](https://docs.python.org/3/library/unittest.html) framework.
+
+```shell script
+coverage run --source=src -m unittest discover -s tests;
+```
+
+To generate coverage reports:
+
+```shell script
+coverage run --source=src -m unittest discover -s tests && coverage report;
+```
+
 ## Assumptions
 
 1. Data was generated via [mockaroo](https://www.mockaroo.com/a701ae50)

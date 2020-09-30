@@ -26,6 +26,8 @@ class CLI:
         self.event_handler.on_created = self._on_created
         self.processed = set()
         self._create_directories_if_not_exists()
+        self.running = False
+        self.observer = Observer()
 
     def _create_directories_if_not_exists(self):
         """
@@ -45,17 +47,24 @@ class CLI:
         """
 
         logging.info(f"Input: {self.input_directory}, output: {self.output_directory}, errors: {self.error_directory}")
-        observer = Observer()
-        observer.schedule(self.event_handler, self.input_directory, recursive=True)
-        observer.start()
+        self.observer.schedule(self.event_handler, self.input_directory, recursive=True)
+        self.observer.start()
         logging.info(f"Preparing to observe {self.input_directory} for .csv files. Control + C to exit")
+        print(f"Waiting for CSV files to be created in: {self.input_directory}")
+        self.running = True
         try:
-            while True:
+            while self.running:
                 time.sleep(1)
         except KeyboardInterrupt:
-            # TODO: Print out each of the files processed
-            observer.stop()
-            observer.join()
+            self.stop()
+
+
+    def stop(self):
+        print("Calling Stop")
+        self.running = False
+        self.observer.stop()
+        self.observer.join()
+        self.print_processed_files()
 
     def _on_created(self, event):
         """
@@ -65,7 +74,8 @@ class CLI:
         :param event:
         :return:
         """
-        logging.info(f"handling on_create event: {event}")
+        logging.info(f"file created: {event.src_path}")
+        print(f"file created: {event.src_path}")
         src_path = event.src_path
         if src_path in self.processed:
             logging.info(f"File {src_path} has already been processed.")
@@ -74,6 +84,7 @@ class CLI:
             return
         else:
             self.processed.add(src_path)
+
         people, errors = self.process_new_input_file(
                 f"{src_path}")
 
@@ -91,7 +102,8 @@ class CLI:
     @staticmethod
     def _write_csv_to_file(data, output_file):
         logging.info(f"Writing out to : {output_file}")
-        write_csv(data=data, field_names=['LINE_NUM', 'ERROR_MSG'], output_file=output_file)
+        write_csv(data=data, output_file=output_file)
+        print(f"Wrote out errors to: {output_file}")
 
     @staticmethod
     def _write_json_to_file(data, output_file):
@@ -103,6 +115,7 @@ class CLI:
         """
         logging.info(f"Writing out to: {output_file}")
         write_json(data, output_file=output_file)
+        print(f"Wrote out people to: {output_file}")
 
     @staticmethod
     def _delete_file(target_path):
@@ -132,11 +145,15 @@ class CLI:
                                     middle_name=row['MIDDLE_NAME'], phone_number=row['PHONE_NUM'])
                     people.append(person)
                 except ValueError as e:
-                    logging.error(f"Error processing row: {e}")
-                    error = Error(row=row_number, error=e)
+                    logging.info(f"Error processing row: {e}")
+                    error = Error(row=row_number, message=e)
                     errors.append(error)
 
         return people, errors
+
+    def print_processed_files(self):
+        for file in self.processed:
+            print(f"Processed: {file}")
 
 
 def parse_args() -> {}:
@@ -150,6 +167,8 @@ def parse_args() -> {}:
                         default=DEFAULTS['OUTPUT_DIRECTORY'])
     parser.add_argument('-e', '--error-directory', help="Directory to write out errors",
                         default=DEFAULTS['ERROR_DIRECTORY'])
+    parser.add_argument('-v', '--verbose', help="Output verbose logs.",
+                        default=False, action="store_true")
     args = parser.parse_args()
     return args
 
@@ -158,7 +177,6 @@ DEFAULTS = {
     'INPUT_DIRECTORY' : 'input_directory',
     'OUTPUT_DIRECTORY': 'output_directory',
     'ERROR_DIRECTORY' : 'error_directory',
-    'DESCRIPTION'     : 'Scoir CSV Exercise. Watches a specified input directory and acts upon CSV Files being '
-                        'created. '
+    'DESCRIPTION'     : 'Scoir CSV Exercise: Watch a specified input directory and process CSV Files that are created'
                         'Control-C to quit execution',
 }

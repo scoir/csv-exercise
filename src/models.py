@@ -18,7 +18,7 @@ class Name:
 class Person(object):
     def __init__(self, internal_id=None, first_name=None, middle_name="", last_name=None, phone_number=None):
         self.id = internal_id
-        if internal_id is None or len(internal_id) == 0:
+        if internal_id is None or len(str(internal_id)) == 0:
             raise ValueError("INTERNAL_ID Must be set")
         if first_name is None or len(first_name) == 0:
             raise ValueError("FIRST_NAME Must be set")
@@ -45,12 +45,9 @@ class Person(object):
 
 
 class Error(object):
-    def __init__(self, row, error):
+    def __init__(self, row, message):
         self.row = row
-        self.message = str(error)
+        self.message = str(message)
 
-    def to_json(self):
-        return {
-            'LINE_NUM' : self.row,
-            'ERROR_MSG': self.message
-        }
+    def to_csv(self):
+        return [self.row, self.message]
