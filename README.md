@@ -1,23 +1,13 @@
 # SCOIR Technical Interview for Back-End Engineers
 This repo contains an exercise intended for Back-End Engineers.
 
-## Instructions
-1. Fork this repo.
-1. Using technology of your choice, complete [the assignment](./Assignment.md).
-1. Update this README with
-    * a `How-To` section containing any instructions needed to execute your program.
-    * an `Assumptions` section containing documentation on any assumptions made while interpreting the requirements.
-1. Before the deadline, submit a pull request with your solution.
-
-## Expectations
-1. Please take no more than 8 hours to work on this exercise. Complete as much as possible and then submit your solution.
-1. This exercise is meant to showcase how you work. With consideration to the time limit, do your best to treat it like a production system.
+![Example Runtime](./example.gif)
 
 ## How To
 
 ### Requirements
 
-- python 3.8+
+- [python 3.8](https://www.python.org/downloads/release/python-385/)
 - [pipenv](https://pypi.org/project/pipenv/)
 
 ### Dependencies
@@ -25,12 +15,32 @@ This repo contains an exercise intended for Back-End Engineers.
 - [watchdog](https://pypi.org/project/watchdog/) for triggering actions when files are created
 
 ### Running
+Runtime Arguments:
 
+```shell script
+$ python main.py -h
+usage: main.py [-h] [-i INPUT_DIRECTORY] [-o OUTPUT_DIRECTORY] [-e ERROR_DIRECTORY] [-v]
+
+Scoir CSV Exercise: Watch a specified input directory and process CSV Files that are
+createdControl-C to quit execution
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUT_DIRECTORY, --input-directory INPUT_DIRECTORY
+                        Input Directory to watch
+  -o OUTPUT_DIRECTORY, --output-directory OUTPUT_DIRECTORY
+                        Directory to write our results
+  -e ERROR_DIRECTORY, --error-directory ERROR_DIRECTORY
+                        Directory to write out errors
+  -v, --verbose         Output verbose logs.1
 ```
+
+```shell script
 pipenv install; # INSTALL DEPENDENCIES
 pipenv run python main.py -h; # Display runtime parameters
 pipenv run python main.py; # EXECUTE PROGRAM WITH DEFAULT PARAMS
 ```
+
 
 - [ ] TODO: create gif of execution
 

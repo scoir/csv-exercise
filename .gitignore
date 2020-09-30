@@ -143,3 +143,4 @@ dmypy.json
 output_directory
 input_directory
 error_directory
+htmlcov
