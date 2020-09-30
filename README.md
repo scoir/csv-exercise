@@ -41,9 +41,6 @@ pipenv run python main.py -h; # Display runtime parameters
 pipenv run python main.py; # EXECUTE PROGRAM WITH DEFAULT PARAMS
 ```
 
-
-- [ ] TODO: create gif of execution
-
 ### Testing
 
 Tests are written with the built in [unittest](https://docs.python.org/3/library/unittest.html) framework.
@@ -67,4 +64,3 @@ coverage run --source=src -m unittest discover -s tests && coverage report;
 1. The program should not store processed files between runs
 1. The program should create folders if they do do not exist
 1. The program should not delete the output directories after a run
-1. TODO: All the assumptions
