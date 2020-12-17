@@ -43,6 +43,11 @@ func main() {
 	// so that when I do things out of sequence I know when a file has been fully processed. This
 	// dictionary will need locks around it because multiple processes will want to edit it.
 
+	// Use the dictionary above with a thread-safe progressbar that reports progress for each
+	// file!
+	// Can give the dictionary additional fields with more information if want to track progress
+	// more granually.
+
 	// Launch the goroutines
 	// Wait for user input
 

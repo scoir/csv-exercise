@@ -10,6 +10,9 @@ import "errors"
 
 // ReadCSVFile streams a CSV file from disk to the rest of the pipeline, record by record, as
 // PersonContexts. When complete, it reports the total amount of records in the file.
+func ReadCSVFile(fileNameStream chan string, personContextStream chan PersonContext, logger chan string) error {
+	return errors.New("unimplemented")
+}
 
 // CSVToPerson converts a csv record from []string to Person.
 func CSVToPerson(input []string) (Person, error) {
