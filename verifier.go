@@ -11,8 +11,8 @@ func VerifyRecord(person *Person) (string, error) {
 // PersonContext provides context to enable non-sequential verification of records.
 type PersonContext struct {
 	FileName   string
-	LineNumber int
-	Record     *Person
+	LineNumber int // if the line number is "-1" it represents a "FILE" level error
+	Record     Person
 }
 
 // ResultContext provides context to enable non-sequential reporting of record verification.

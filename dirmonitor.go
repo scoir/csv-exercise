@@ -50,6 +50,10 @@ func DirMonitor(
 	}
 
 	kill := false
+	// NOTE: this loop could get held up by bottlenecks later in the system, specifically
+	// processingcontext/AddProcessingFile. I'm not sure how this will affect the third party
+	// library but if unexpected errors occur under load this is the first place I'd check after
+	// logs.
 	for !kill {
 		select {
 		case kill = <-killChan:

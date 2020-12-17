@@ -166,7 +166,6 @@ func TestLogsProcessingMapError(t *testing.T) {
 	testDir := "test"
 	go DirMonitor(&testDir, m, toProcess, logger, kill, errChan)
 	time.Sleep(time.Second * 1)
-	time.Sleep(time.Second * 1)
 	if rErr := os.Remove("test/test.csv"); rErr != nil {
 		t.Error(rErr)
 	}
