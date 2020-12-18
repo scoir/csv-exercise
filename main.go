@@ -33,7 +33,7 @@ func parseArgs(
 		fmt.Sprintf(
 			"%s %s",
 			"Controls the size of the file processing queue the program to maintain.",
-			"Should correspond with the maximum amount of files being processed at once.",
+			"Must equal or exceed the maximum amount of files being processed at once.",
 		),
 	)
 	flag.IntVar(
@@ -83,7 +83,7 @@ func main() {
 	}
 
 	// toProcess := make(chan string, maxRecords)
-	kill := make(chan bool)
+	kill := make(chan bool) // intentionally no buffer so blocks while waiting for kill
 	logger := make(chan string, maxRecords)
 	errChan := make(chan error, maxRecords)
 	processFile := make(chan string, maxFiles)
@@ -108,8 +108,8 @@ func main() {
 
 	rawData := make(chan ResultContext, maxRecords)
 
-	resultData := make(chan ResultContext)
-	verifyChan := make(chan PersonContext)
+	resultData := make(chan ResultContext, maxRecords)
+	verifyChan := make(chan PersonContext, maxRecords)
 
 	// split between errors and non-errors here
 	go errSplitter(rawData, resultData, verifyChan, kill)
@@ -120,7 +120,7 @@ func main() {
 	}
 
 	// convert between resultcontext and Export here
-	exportData := make(chan ExportInterface)
+	exportData := make(chan ExportInterface, maxRecords)
 	go resultToExport(&outDir, &errDir, resultData, exportData, kill)
 	go ExportManager(exportData, &processingContext, numCPUs, maxRecords, logger, kill)
 
