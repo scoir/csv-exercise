@@ -13,7 +13,6 @@ import (
 func DirMonitor(
 	inDir *string,
 	processingMap ProcessingContextInterface,
-	toProcess,
 	logger chan string,
 	killChan chan bool,
 	errChan chan error,
@@ -32,7 +31,8 @@ func DirMonitor(
 			continue
 		}
 		fileName := path.Join(*inDir, file.Name())
-		processFile(fileName, processingMap, toProcess, logger)
+
+		processingMap.AddProcessingFile(fileName)
 	}
 
 	// Set up a Watcher for any new files
@@ -67,13 +67,11 @@ func DirMonitor(
 			if fileModified(event.Op) && strings.HasSuffix(event.Name, ".csv") {
 				fileName := event.Name
 
-				if processing, err := processingMap.CurrentlyProcessing(fileName); processing || err != nil {
-					if err != nil {
-						LogError(err, logger)
-					}
+				if processing := processingMap.CurrentlyProcessing(fileName); processing {
 					continue
 				}
-				processFile(fileName, processingMap, toProcess, logger)
+
+				processingMap.AddProcessingFile(fileName)
 			}
 
 		case err, ok := <-watcher.Errors:
@@ -85,15 +83,6 @@ func DirMonitor(
 			return
 		}
 	}
-}
-
-func processFile(fileName string, processingMap ProcessingContextInterface, toProcess, logger chan string) {
-	pMErr := processingMap.AddProcessingFile(fileName)
-	if pMErr != nil {
-		LogError(pMErr, logger)
-		return
-	}
-	toProcess <- fileName
 }
 
 func fileModified(op fsnotify.Op) bool {

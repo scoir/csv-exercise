@@ -1,9 +1,7 @@
 package main
 
 import (
-	"errors"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -16,23 +14,19 @@ func TestFindsNewFile(t *testing.T) {
 	defer ctrl.Finish()
 
 	m := mock.NewMockProcessingContextInterface(ctrl)
-	m.EXPECT().CurrentlyProcessing("test/testnew.csv").Return(false, nil)
-	m.EXPECT().AddProcessingFile("test/testnew.csv").Return(nil)
-	toProcess := make(chan string, 1)
+	m.EXPECT().CurrentlyProcessing("test/testnew.csv").Return(false)
+	m.EXPECT().AddProcessingFile("test/testnew.csv")
 	logger := make(chan string, 1)
 	kill := make(chan bool, 1)
 	errChan := make(chan error, 1)
 	testDir := "test"
-	go DirMonitor(&testDir, m, toProcess, logger, kill, errChan)
+	go DirMonitor(&testDir, m, logger, kill, errChan)
 	time.Sleep(time.Second * 1)
 	if cErr := createFile("test/testnew.csv"); cErr != nil {
 		t.Error(cErr)
 	}
-	var val string
-	select {
-	case <-time.After(time.Second * 5):
-	case val = <-toProcess:
-	}
+
+	time.Sleep(time.Second * 1)
 
 	if rErr := os.Remove("test/testnew.csv"); rErr != nil {
 		t.Error(rErr)
@@ -40,9 +34,7 @@ func TestFindsNewFile(t *testing.T) {
 
 	kill <- true
 
-	if val != "test/testnew.csv" {
-		t.Errorf("Expected: test/testnew.csv Got: %s", val)
-	}
+	// the test is in the mock
 }
 
 func TestFindsExistingFile(t *testing.T) {
@@ -53,18 +45,14 @@ func TestFindsExistingFile(t *testing.T) {
 	defer ctrl.Finish()
 
 	m := mock.NewMockProcessingContextInterface(ctrl)
-	m.EXPECT().AddProcessingFile("test/test.csv").Return(nil)
-	toProcess := make(chan string, 1)
+	m.EXPECT().AddProcessingFile("test/test.csv")
 	logger := make(chan string, 1)
 	errChan := make(chan error, 1)
 	kill := make(chan bool, 1)
 	testDir := "test"
-	go DirMonitor(&testDir, m, toProcess, logger, kill, errChan)
-	var val string
-	select {
-	case <-time.After(time.Second * 5):
-	case val = <-toProcess:
-	}
+	go DirMonitor(&testDir, m, logger, kill, errChan)
+
+	time.Sleep(time.Second)
 
 	if rErr := os.Remove("test/test.csv"); rErr != nil {
 		t.Error(rErr)
@@ -72,9 +60,7 @@ func TestFindsExistingFile(t *testing.T) {
 
 	kill <- true
 
-	if val != "test/test.csv" {
-		t.Errorf("Expected: test/test.csv Got: %s", val)
-	}
+	// the test is in the mock
 }
 
 func TestIgnoresNonCSVFiles(t *testing.T) {
@@ -85,21 +71,17 @@ func TestIgnoresNonCSVFiles(t *testing.T) {
 	defer ctrl.Finish()
 
 	m := mock.NewMockProcessingContextInterface(ctrl)
-	toProcess := make(chan string, 1)
 	logger := make(chan string, 1)
 	errChan := make(chan error, 1)
 	kill := make(chan bool, 1)
 	testDir := "test"
-	go DirMonitor(&testDir, m, toProcess, logger, kill, errChan)
+	go DirMonitor(&testDir, m, logger, kill, errChan)
 	time.Sleep(time.Second * 1)
 	if cErr := createFile("test/testnew.txt"); cErr != nil {
 		t.Error(cErr)
 	}
-	var val string
-	select {
-	case <-time.After(time.Second * 1):
-	case val = <-toProcess:
-	}
+
+	time.Sleep(time.Second)
 
 	if rErr := os.Remove("test/test.txt"); rErr != nil {
 		t.Error(rErr)
@@ -111,9 +93,7 @@ func TestIgnoresNonCSVFiles(t *testing.T) {
 
 	kill <- true
 
-	if val != "" {
-		t.Errorf("Expected:  Got: %s", val)
-	}
+	// the test is in the mock
 }
 
 func TestMarksModifiedFile(t *testing.T) {
@@ -124,14 +104,13 @@ func TestMarksModifiedFile(t *testing.T) {
 	defer ctrl.Finish()
 
 	m := mock.NewMockProcessingContextInterface(ctrl)
-	m.EXPECT().CurrentlyProcessing("test/test.csv").Return(true, nil)
-	m.EXPECT().AddProcessingFile("test/test.csv").Return(nil)
-	toProcess := make(chan string, 1)
+	m.EXPECT().CurrentlyProcessing("test/test.csv").Return(true)
+	m.EXPECT().AddProcessingFile("test/test.csv")
 	logger := make(chan string, 1)
 	errChan := make(chan error, 1)
 	kill := make(chan bool, 1)
 	testDir := "test"
-	go DirMonitor(&testDir, m, toProcess, logger, kill, errChan)
+	go DirMonitor(&testDir, m, logger, kill, errChan)
 	time.Sleep(time.Second * 1)
 	f, oErr := os.OpenFile("test/test.csv", os.O_RDWR, 0644)
 	if oErr != nil {
@@ -148,39 +127,6 @@ func TestMarksModifiedFile(t *testing.T) {
 	kill <- true
 
 	// The check here is in the mock - only 1 addprocessing and a currentlyprocessing
-}
-
-func TestLogsProcessingMapError(t *testing.T) {
-	if cErr := createFile("test/test.csv"); cErr != nil {
-		t.Error(cErr)
-	}
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	m := mock.NewMockProcessingContextInterface(ctrl)
-	m.EXPECT().AddProcessingFile("test/test.csv").Return(errors.New("test"))
-	toProcess := make(chan string, 1)
-	logger := make(chan string, 1)
-	errChan := make(chan error, 1)
-	kill := make(chan bool, 1)
-	testDir := "test"
-	go DirMonitor(&testDir, m, toProcess, logger, kill, errChan)
-	time.Sleep(time.Second * 1)
-	if rErr := os.Remove("test/test.csv"); rErr != nil {
-		t.Error(rErr)
-	}
-
-	var val string
-	select {
-	case <-time.After(time.Second * 1):
-	case val = <-logger:
-	}
-
-	kill <- true
-
-	if !strings.HasSuffix(val, "test") {
-		t.Errorf("Expected: test Got: %s", val)
-	}
 }
 
 func createFile(name string) error {

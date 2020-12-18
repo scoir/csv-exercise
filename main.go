@@ -3,6 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"runtime"
+	"sync"
+	"time"
 )
 
 func parseArgs(
@@ -55,7 +59,6 @@ func parseArgs(
 
 func main() {
 	fmt.Println("Hello World!")
-	defer fmt.Println("Exiting...")
 
 	var inDir, outDir, errDir, logFile string
 	var verbose, distributed, careful bool
@@ -74,34 +77,126 @@ func main() {
 		return
 	}
 
-	// NOTE: will need a dictionary keeping track of the size (num lines / records) in each file
-	// so that when I do things out of sequence I know when a file has been fully processed. This
-	// dictionary will need locks around it because multiple processes will want to edit it.
+	if inDir == "" || outDir == "" || errDir == "" || logFile == "" {
+		fmt.Println("The arg flags i o e and l are required")
+		return
+	}
 
-	// Use the dictionary above with a thread-safe progressbar that reports progress for each
-	// file!
-	// Can give the dictionary additional fields with more information if want to track progress
-	// more granually.
+	// toProcess := make(chan string, maxRecords)
+	kill := make(chan bool)
+	logger := make(chan string, maxRecords)
+	errChan := make(chan error, maxRecords)
+	processFile := make(chan string, maxFiles)
+	deleteFile := make(chan string, maxFiles)
+	fileQueue := make(chan string, maxFiles)
+	contextMap := make(map[string]ProcessingContext)
+	processingContext := LockedProcessingContextMap{
+		maxConcurrent: maxFiles,
+		lock:          sync.Mutex{},
+		process:       processFile,
+		fileQueue:     fileQueue,
+		delete:        deleteFile,
+		Map:           contextMap,
+	}
 
-	// NOTE: will want to keep a "queue" of files to put in the pipeline between DirMonitor and the
-	// rest of the system. The size of this queue determines the maximum number of files a user
-	// will want to introduce to the program (via either starting in a directory with files or
-	// copying files into the input directory) at a time, not exceeding this number.
+	// Get number of processes available to the runtime
+	numCPUs := runtime.NumCPU()
 
-	// NOTE: will need to convert between ResultContext and Export objects
+	go Logger(&logFile, logger)
 
-	// NOTE: the queue mentioned above can also be used to induce the reprocessing of files once
-	// completed as it will have to be aware of processes completing to limit system load.
+	go DirMonitor(&inDir, &processingContext, logger, kill, errChan)
 
-	// Launch the goroutines
-	// Wait for user input
+	rawData := make(chan ResultContext, maxRecords)
 
-	// Kill the goroutines -- nicely (hard kill Ctrl-C)
-	// NOTE: will need to keep track of the number of goroutines listening to the killChan, then
-	// send the correct number of kill signals. This will also have the effect of block the main
-	// program from exiting until all the subprocesses have been killed.
+	resultData := make(chan ResultContext)
+	verifyChan := make(chan PersonContext)
 
-	// NOTE: want to make sure that there is a clean path for any "fatal" errors. If a fatal error
-	// is detected begin "nice" shutdown.
-	// Exit
+	// split between errors and non-errors here
+	go errSplitter(rawData, resultData, verifyChan, kill)
+
+	for i := 0; i < numCPUs; i++ {
+		go CSVImporter(processFile, rawData, &processingContext, logger, kill)
+		go Verifier(verifyChan, resultData, kill)
+	}
+
+	// convert between resultcontext and Export here
+	exportData := make(chan ExportInterface)
+	go resultToExport(&outDir, &errDir, resultData, exportData, kill)
+	go ExportManager(exportData, &processingContext, numCPUs, maxRecords, logger, kill)
+
+	go fileDeleter(deleteFile, kill)
+
+	// now waiting for user input to kill
+	var input string
+	fmt.Println("Hit the Enter Key to Kill the Program (or Ctrl-C for hard kill)")
+	fmt.Scanln(&input)
+
+	// after recieve user input, issue the kill signals and die once they've all been recieved
+	numKillSignals := (2 * numCPUs) + 5 // all importers, verifiers, dirmonitor, exportmanager,
+	//  converter, splitter, deleter, and logger
+	for i := 0; i < numKillSignals; i++ {
+		kill <- true
+	}
+
+	time.Sleep(time.Second)
+
+	fmt.Println("Exited Successfully")
+	return
+}
+
+func errSplitter(raw, results chan ResultContext, verifyChan chan PersonContext, killChan chan bool) {
+	kill := false
+	for !kill {
+		select {
+		case kill = <-killChan:
+			continue
+		case rawData := <-raw:
+			if rawData.result == "" {
+				verifyChan <- rawData.context
+			} else {
+				results <- rawData
+			}
+		}
+	}
+}
+
+func resultToExport(
+	outDir, errDir *string,
+	results chan ResultContext,
+	exports chan ExportInterface,
+	killChan chan bool,
+) {
+	kill := false
+	for !kill {
+		select {
+		case kill = <-killChan:
+			continue
+		case r := <-results:
+			if r.result == "" {
+				exports <- &Export{
+					source:  r.context.FileName,
+					destDir: *outDir,
+					obj:     &PersonFormat{r.context.Record},
+				}
+			} else {
+				exports <- &Export{
+					source:  r.context.FileName,
+					destDir: *errDir,
+					obj:     &ErrorFormat{r.context.LineNumber, r.result},
+				}
+			}
+		}
+	}
+}
+
+func fileDeleter(fileChan chan string, killChan chan bool) {
+	kill := false
+	for !kill {
+		select {
+		case kill = <-killChan:
+			continue
+		case f := <-fileChan:
+			os.Remove(f)
+		}
+	}
 }

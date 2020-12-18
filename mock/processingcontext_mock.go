@@ -33,11 +33,9 @@ func (m *MockProcessingContextInterface) EXPECT() *MockProcessingContextInterfac
 }
 
 // AddProcessingFile mocks base method
-func (m *MockProcessingContextInterface) AddProcessingFile(name string) error {
+func (m *MockProcessingContextInterface) AddProcessingFile(name string) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddProcessingFile", name)
-	ret0, _ := ret[0].(error)
-	return ret0
+	m.ctrl.Call(m, "AddProcessingFile", name)
 }
 
 // AddProcessingFile indicates an expected call of AddProcessingFile
@@ -47,12 +45,11 @@ func (mr *MockProcessingContextInterfaceMockRecorder) AddProcessingFile(name int
 }
 
 // CurrentlyProcessing mocks base method
-func (m *MockProcessingContextInterface) CurrentlyProcessing(name string) (bool, error) {
+func (m *MockProcessingContextInterface) CurrentlyProcessing(name string) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CurrentlyProcessing", name)
 	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	return ret0
 }
 
 // CurrentlyProcessing indicates an expected call of CurrentlyProcessing
@@ -102,4 +99,18 @@ func (m *MockProcessingContextInterface) SetNumRecords(name string, num int) err
 func (mr *MockProcessingContextInterfaceMockRecorder) SetNumRecords(name, num interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetNumRecords", reflect.TypeOf((*MockProcessingContextInterface)(nil).SetNumRecords), name, num)
+}
+
+// NumCurrentlyProcessing mocks base method
+func (m *MockProcessingContextInterface) NumCurrentlyProcessing() int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NumCurrentlyProcessing")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// NumCurrentlyProcessing indicates an expected call of NumCurrentlyProcessing
+func (mr *MockProcessingContextInterfaceMockRecorder) NumCurrentlyProcessing() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NumCurrentlyProcessing", reflect.TypeOf((*MockProcessingContextInterface)(nil).NumCurrentlyProcessing))
 }
