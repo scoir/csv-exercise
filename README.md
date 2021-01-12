@@ -47,4 +47,6 @@ There is a shell script to create mockdata. This script should be called after t
 - The program will terminate if a csv with invalid headers is provided as input.
 I believe this is a reasonable behavior given that an invalid format would affect
 every record in the file - we should not log this and instead terminate.
-- The program will attempt to clean inputs such as whitespace in a phone number
+- The program will also terminate if it is unable to produce a required file (error log or json)
+- The program will not attempt to clean inputs of each field such as whitespaces or numbers
+where characters are expected to be such as in a name.
