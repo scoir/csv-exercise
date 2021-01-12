@@ -167,7 +167,7 @@ func (p *Parser) ParseRecordsToJSON(file string) ([]*record.Record, *record.Erro
 			errorLog.Append(rowNumberStr, fmt.Sprint(err))
 		}
 
-		if len(row) < p.RowLength {
+		if len(row) != p.RowLength {
 			rowHasError = true
 			errorLog.Append(rowNumberStr, fmt.Sprintf("Error processing csv file: row is expected to have %v elements", p.RowLength))
 		}
