@@ -22,6 +22,7 @@ type Parser struct {
 	InputDirectory  string
 	OutputDirectory string
 	ErrorsDirectory string
+	processedFiles  map[string]bool
 }
 
 // Watch listens to the input-directory for new files and
@@ -36,6 +37,8 @@ func (p *Parser) Watch() {
 	}
 	defer watcher.Close()
 
+	fmt.Println("Watching for new files in directory:", p.InputDirectory)
+
 	done := make(chan bool)
 	go func() {
 		for {
@@ -44,26 +47,31 @@ func (p *Parser) Watch() {
 				if !ok {
 					return
 				}
-				log.Println("event: ", event)
 				if event.Op&fsnotify.Create == fsnotify.Create {
 					fileName := filepath.Base(event.Name)
 					fileName = strings.TrimSuffix(fileName, path.Ext(fileName))
+					fmt.Printf("Found new file, %s, attempting to process\n", fileName)
+
+					if !p.FileKeyExists(fileName) {
+						p.AddFileKey(fileName)
+					}
+
 					r, errorLog := p.ParseRecordsToJSON(event.Name)
 
 					if errorLog.HasData() {
-						fmt.Println(errorLog.Errors)
 						p.WriteErrorsToFile(fileName, errorLog.Errors)
 					}
 
 					p.WriteRecordsToJSON(fileName, r)
 					err := os.Remove(event.Name)
 
+					// TODO: If there was en error removing the source input, we need to implement a way to come back to remove this file
 					if err != nil {
 						log.Println("Error removing parsed CSV:", err)
 					}
-				}
-				if event.Op&fsnotify.Write == fsnotify.Write {
-					log.Println("modified file: ", event.Name)
+
+					p.SetFileAsProcessed(fileName)
+					fmt.Printf("File, %s, has been processed\n", fileName)
 				}
 			case err, ok := <-watcher.Errors:
 				if !ok {
@@ -79,6 +87,27 @@ func (p *Parser) Watch() {
 		log.Fatal(err)
 	}
 	<-done
+}
+
+// AddFileKey adds a key representing a filename to be processed to the processedFiles map
+func (p *Parser) AddFileKey(f string) {
+	p.processedFiles[f] = false
+}
+
+// FileHasBeenProcessed returns true or false depending on whether a file with a given key has been processed
+func (p *Parser) FileHasBeenProcessed(f string) bool {
+	return p.processedFiles[f]
+}
+
+// FileKeyExists returns true or false depending on whether a file name exists within the processedFiles map
+func (p *Parser) FileKeyExists(f string) bool {
+	_, found := p.processedFiles[f]
+	return found
+}
+
+// SetFileAsProcessed sets the k/v pair for a file to true
+func (p *Parser) SetFileAsProcessed(f string) {
+	p.processedFiles[f] = true
 }
 
 // ParseRecordsToJSON takes a file path, parses the csv to JSON, and returns
@@ -103,7 +132,7 @@ func (p *Parser) ParseRecordsToJSON(file string) ([]*record.Record, *record.Erro
 		log.Fatal(err)
 	}
 
-	if len(header) < p.RowLength {
+	if len(header) != p.RowLength {
 		log.Fatalf("Error processing csv file: header row is expected to have %v elements", p.RowLength)
 	}
 
@@ -119,6 +148,11 @@ func (p *Parser) ParseRecordsToJSON(file string) ([]*record.Record, *record.Erro
 
 	rowNumber := 1
 
+	// Traverse the csv file. In this iteration, we will collect and structure
+	// both valid and invalid data (record objects and error log objects).
+	// We opt to collect all of the required data in one traversal of the csv.
+	// We could reduce the complexity of this iteration by using two traversals -
+	// one for structuring valid data and one for structuring errors.
 	for {
 		var rowHasError bool
 		rowNumberStr := strconv.Itoa(rowNumber)
@@ -227,5 +261,6 @@ func NewParser(rowLength int, inputDirectory, outputDirectory, errorsDirectory s
 		InputDirectory:  inputDirectory,
 		OutputDirectory: outputDirectory,
 		ErrorsDirectory: errorsDirectory,
+		processedFiles:  make(map[string]bool),
 	}
 }
