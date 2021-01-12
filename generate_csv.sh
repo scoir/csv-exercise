@@ -1,6 +1,3 @@
-if test -f "$1.csv"; then
-  echo This file exists
-fi
 printf "INTERNAL_ID,FIRST_NAME,MIDDLE_NAME,LAST_NAME,PHONE_NUM
 1,Edward,,Thorpe,123-456-7890
 2,Claude,,Shannon,098-765-4321
