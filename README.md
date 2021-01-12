@@ -11,4 +11,38 @@ This repo contains an exercise intended for Back-End Engineers.
 
 ## Expectations
 1. Please take no more than 8 hours to work on this exercise. Complete as much as possible and then submit your solution.
-1. This exercise is meant to showcase how you work. With consideration to the time limit, do your best to treat it like a production system.
+2. This exercise is meant to showcase how you work. With consideration to the time limit, do your best to treat it like a production system.
+
+## How-To
+### Requirements
+- Go version 1.15.6
+### Dependencies
+- [fsnotify](github.com/fsnotify/fsnotify) for watching for changes in a given directory
+- [cli](github.com/urfave/cli) for providing a cli interface
+## Running
+This program can be run with either of the following methods
+```
+go run ./cmd/csv-exercise/csv-exercise.go
+```
+```
+go build ./cmd/csv-exercise/csv-exercise.go
+go install ./cmd/csv-exercise/csv-exercise.go
+csv-exercise
+```
+
+By default, this program will create an input, output, and errors directory.
+You can define your own directories by using any of the following flags
+```
+csv-exercise [--input-dir ${input_directory}] [--output-dir ${output_directory}] [--errors-dir ${errors_directory}]
+```
+
+There is a shell script to create mockdata. This script should be called after the Go program is running.
+```
+# Omit the extension from ${file_name}
+./generate_csv.sh ${file_name}
+```
+## Assumptions
+- Mock data was hardcoded and can be generated with the provided shell script
+- This program has been tested on MacOS
+- The program will terminate if a csv with invalid headers is provided
+- The program will attempt to clean inputs such as whitespace in a phone number

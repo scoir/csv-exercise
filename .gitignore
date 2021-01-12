@@ -1,0 +1,8 @@
+*.csv
+*.json
+./errors-directory
+./input-directory
+./output-directory
+./errors
+./output
+./input
