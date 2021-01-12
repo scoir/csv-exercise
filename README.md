@@ -26,7 +26,6 @@ go run ./cmd/csv-exercise/csv-exercise.go
 ```
 ```
 go build ./cmd/csv-exercise/csv-exercise.go
-go install ./cmd/csv-exercise/csv-exercise.go
 csv-exercise
 ```
 
