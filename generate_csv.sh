@@ -8,4 +8,5 @@ a,Rich,H,,893-155-2227
 6,Fischer,,Black,222-222-2222
 7,John,Horton,Conway,
 8,Per,,Bak,555-5
-9,Benoit,B.,Mandelbrot,011-235-1321" >> ./input/$1.csv
+9,Benoit,B.,Mandelbrot,011-235-1321
+10,ThisNameIsTooLong,,ThisNameIsAlsoTooLong,555-555-5555" >> ./input/$1.csv
