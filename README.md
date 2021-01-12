@@ -44,5 +44,7 @@ There is a shell script to create mockdata. This script should be called after t
 ## Assumptions
 - Mock data was hardcoded and can be generated with the provided shell script
 - This program has been tested on MacOS
-- The program will terminate if a csv with invalid headers is provided
+- The program will terminate if a csv with invalid headers is provided as input.
+I believe this is a reasonable behavior given that an invalid format would affect
+every record in the file - we should not log this and instead terminate.
 - The program will attempt to clean inputs such as whitespace in a phone number
