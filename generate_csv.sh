@@ -5,4 +5,7 @@ printf "INTERNAL_ID,FIRST_NAME,MIDDLE_NAME,LAST_NAME,PHONE_NUM
 a,Rich,H,,893-155-2227
 5,Richard, H, Thaler, 893-155-2227
 6,Fischer,,, 111-111-1111
-6,Fischer,,Black,222-222-2222" >> ./input/$1.csv
+6,Fischer,,Black,222-222-2222
+7,John,Horton,Conway,
+8,Per,,Bak,555-5
+9,Benoit,B.,Mandelbrot,011-235-1321" >> ./input/$1.csv
