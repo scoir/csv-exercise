@@ -36,7 +36,7 @@ func main() {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			p := parser.NewParser(DEFAULT_ROW_LENGTH, DEFAULT_INPUT_DIRECTORY, DEFAULT_OUTPUT_DIRECTORY, DEFAULT_ERRORS_DIRECTORY)
+			p := parser.NewParser(DEFAULT_ROW_LENGTH, c.String("input-dir"), c.String("output-dir"), c.String("error-dir"))
 			for {
 				p.Watch()
 			}
