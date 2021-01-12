@@ -217,7 +217,7 @@ func (p *Parser) ParseRecordsToJSON(file string) ([]*record.Record, *record.Erro
 // WriteRecordsToJSON takes a filename and an array of Record object pointers
 // and writes the Record objects to a JSON file
 func (p *Parser) WriteRecordsToJSON(file string, records []*record.Record) {
-	data, _ := json.MarshalIndent(records, "", "")
+	data, _ := json.MarshalIndent(records, "", "\t")
 	err := ioutil.WriteFile(p.OutputDirectory+"/"+file+".json", data, 0644)
 	if err != nil {
 		log.Fatal(err)
