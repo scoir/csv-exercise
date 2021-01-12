@@ -17,8 +17,8 @@ This repo contains an exercise intended for Back-End Engineers.
 ### Requirements
 - Go version 1.15.6
 ### Dependencies
-- [fsnotify](github.com/fsnotify/fsnotify) for watching for changes in a given directory
-- [cli](github.com/urfave/cli) for providing a cli interface
+- [fsnotify](https://github.com/fsnotify/fsnotify) for watching for changes in a given directory
+- [cli](https://github.com/urfave/cli) for providing a cli interface
 ## Running
 This program can be run with either of the following methods
 ```
