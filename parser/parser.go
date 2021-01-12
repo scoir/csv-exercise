@@ -121,6 +121,7 @@ func (p *Parser) ParseRecordsToJSON(file string) ([]*record.Record, *record.Erro
 
 	for {
 		var rowHasError bool
+		rowNumberStr := strconv.Itoa(rowNumber)
 
 		row, err := r.Read()
 		if err == io.EOF {
@@ -129,19 +130,19 @@ func (p *Parser) ParseRecordsToJSON(file string) ([]*record.Record, *record.Erro
 
 		if err != nil {
 			rowHasError = true
-			errorLog.Append(strconv.Itoa(rowNumber), fmt.Sprint(err))
+			errorLog.Append(rowNumberStr, fmt.Sprint(err))
 		}
 
 		if len(row) < p.RowLength {
 			rowHasError = true
-			errorLog.Append(strconv.Itoa(rowNumber), fmt.Sprintf("Error processing csv file: row is expected to have %v elements", p.RowLength))
+			errorLog.Append(rowNumberStr, fmt.Sprintf("Error processing csv file: row is expected to have %v elements", p.RowLength))
 		}
 
 		id, err := strconv.Atoi(row[0])
 
 		if err != nil {
 			rowHasError = true
-			errorLog.Append(strconv.Itoa(rowNumber), fmt.Sprint("Expected a positive integer for the ID field, but received an unexpected value"))
+			errorLog.Append(rowNumberStr, fmt.Sprint("Expected a positive integer for the ID field, but received an unexpected value"))
 		}
 
 		firstName := row[1]
@@ -153,21 +154,21 @@ func (p *Parser) ParseRecordsToJSON(file string) ([]*record.Record, *record.Erro
 
 		if err != nil {
 			rowHasError = true
-			errorLog.Append(strconv.Itoa(rowNumber), fmt.Sprint(err))
+			errorLog.Append(rowNumberStr, fmt.Sprint(err))
 		}
 
 		pn, err := record.NewPhoneNumber(phoneNum)
 
 		if err != nil {
 			rowHasError = true
-			errorLog.Append(strconv.Itoa(rowNumber), fmt.Sprint(err))
+			errorLog.Append(rowNumberStr, fmt.Sprint(err))
 		}
 
 		r, err := record.NewRecord(uint32(id), n, pn)
 
 		if err != nil {
 			rowHasError = true
-			errorLog.Append(strconv.Itoa(rowNumber), fmt.Sprint(err))
+			errorLog.Append(rowNumberStr, fmt.Sprint(err))
 		}
 
 		if !rowHasError {
