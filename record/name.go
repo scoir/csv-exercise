@@ -26,6 +26,10 @@ func NewName(first string, middle string, last string) (*Name, error) {
 		return nil, errors.New(fmt.Sprint("error in last name:", err))
 	}
 
+	if len(middle) > 15 {
+		return nil, errors.New(fmt.Sprint("error in middle name: Name exceeds maximum length of 15 characters"))
+	}
+
 	return &Name{
 		FirstName:  first,
 		MiddleName: middle,
