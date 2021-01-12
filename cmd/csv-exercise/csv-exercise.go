@@ -7,10 +7,12 @@ import (
 	"os"
 )
 
-const DEFAULT_ROW_LENGTH = 5
-const DEFAULT_INPUT_DIRECTORY = "./input"
-const DEFAULT_OUTPUT_DIRECTORY = "./output"
-const DEFAULT_ERRORS_DIRECTORY = "./errors"
+const (
+	DEFAULT_ROW_LENGTH       = 5
+	DEFAULT_INPUT_DIRECTORY  = "./input"
+	DEFAULT_OUTPUT_DIRECTORY = "./output"
+	DEFAULT_ERRORS_DIRECTORY = "./errors"
+)
 
 func main() {
 	app := &cli.App{
