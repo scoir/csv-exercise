@@ -1,5 +1,5 @@
-# SCOIR Technical Interview for Back-End Engineers
-This repo contains an exercise intended for Back-End Engineers.
+# SCOIR Technical Interview
+This repo contains an exercise intended for engineers.
 
 ## Instructions
 1. Fork this repo.
